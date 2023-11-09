@@ -73,7 +73,11 @@ float LIFT_K[6] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 SoftwareSerial Reciever(TRANS_Rx_PIN, TRANS_Tx_PIN);
 AsyncStream<25> Serial_Rx(&Reciever, TERMINATOR);
 EncButton encoderServo(25, 26, 27); // 25-26 - encoder, 27 - button
-GyverOLED<SSD1306_128x64, OLED_BUFFER, OLED_SPI, 22, 23, 24> oled;
+
+// для I2C можно передать адрес: GyverOLED oled(0x3C);
+//GyverOLED<SSD1306_128x64, OLED_BUFFER, OLED_SPI, 22, 23, 24> oled;
+GyverOLED<SSH1106_128x64> oled;
+
 
 //////////////
 /// TIMERS ///
@@ -91,7 +95,7 @@ bool remote = true;
 int data_bot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 int data_top[8] = {180, 180, 180, 180, 180, 180, 180, 0};
 int flag = 0;
-int param_pos[3] = {0, 13, 18};
+int param_pos[3] = {0, 11, 16};
 const int LIFTS_COUNT = 6;
 ServoSmooth LIFTS[LIFTS_COUNT];
 
@@ -123,13 +127,13 @@ void setup()
   oled.clear();
   oled.print(
       F(
-          " Servo1  90  180/r/n"
-          " Servo2  90  180/r/n"
-          " Servo3  90  180/r/n"
-          " Servo4  90  180/r/n"
-          " Servo5  90  180/r/n"
-          " Servo6  90  180/r/n"
-          " Srv1-6  90  180/r/n"
+          " Servo1   90   180/r/n"
+          " Servo2   90   180/r/n"
+          " Servo3   90   180/r/n"
+          " Servo4   90   180/r/n"
+          " Servo5   90   180/r/n"
+          " Servo6   90   180/r/n"
+          " Srv1-6   90   180/r/n"
           " Remote/r/n"));
 
   oled.setCursor(0, pointer);
@@ -142,6 +146,7 @@ void setup()
 void loop()
 {
   encoderServo.tick();
+
   if (digitalRead(MANUAL_LIFT_PIN) == LOW)
   {
     oled.setPower(OLED_DISPLAY_ON);
