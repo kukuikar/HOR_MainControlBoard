@@ -4,6 +4,7 @@
 #include <ServoSmooth.h>
 #include <GyverOLED.h>
 #include <EncButton.h>
+#include <Arduino.h>
 class LIFT
 {
 public:
@@ -12,9 +13,9 @@ public:
     _srv_pin = SERVO_PIN;
     _limit_up_pin = LIMIT_UP_PIN;
     _limit_bot_pin = LIMIT_BOT_PIN;
-    pinMode(SERVO_PIN, OUTPUT);
-    pinMode(LIMIT_UP_PIN, INPUT_PULLUP);
-    pinMode(LIMIT_BOT_PIN, INPUT_PULLUP);
+    //pinMode(SERVO_PIN, OUTPUT);
+    //pinMode(LIMIT_UP_PIN, INPUT_PULLUP);
+    //pinMode(LIMIT_BOT_PIN, INPUT_PULLUP);
     _servo.attach(_srv_pin);
   }  
   void drive(int ang)
@@ -58,18 +59,8 @@ int LIFT_LIMIT_PINS[2][6] =
     {28, 30, 32, 34, 36, 38 }, /*up limit*/
     {29, 31, 33, 35, 37, 39 }, /*bottom limit*/
   };
+
 float LIFT_K[6] = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
-/*
-LIFT lifts[6] = {
-  LIFT(LIFT_PINS[0], LIFT_LIMIT_PINS[0][0], LIFT_LIMIT_PINS[1][0]),
-  LIFT(LIFT_PINS[1], LIFT_LIMIT_PINS[0][1], LIFT_LIMIT_PINS[1][1]),
-  LIFT(LIFT_PINS[2], LIFT_LIMIT_PINS[0][2], LIFT_LIMIT_PINS[1][2]),
-  LIFT(LIFT_PINS[3], LIFT_LIMIT_PINS[0][3], LIFT_LIMIT_PINS[1][3]),
-  LIFT(LIFT_PINS[4], LIFT_LIMIT_PINS[0][4], LIFT_LIMIT_PINS[1][4]),
-  LIFT(LIFT_PINS[5], LIFT_LIMIT_PINS[0][5], LIFT_LIMIT_PINS[1][5]),
-};
-*/
-ServoSmooth s1, s2, s3, s4, s5, s6;
 
 #define TRANS_Rx_PIN 2
 #define TRANS_Tx_PIN 3
@@ -98,10 +89,10 @@ int tmr_oled_inerval = 200;
 /// VARIABLES ///
 /////////////////
 int servoNumManual = 6;
-byte pointer = 0;
+int pointer = 0;
 bool remote = true;
 int data_bot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-int data_top[8] = {0, 180, 180, 180, 180, 180, 180, 180};
+int data_top[8] = {180, 180, 180, 180, 180, 180, 180, 0};
 int flag = 0;
 int param_pos[3] = {0, 13, 18};
 ServoSmooth LIFTS[6];
@@ -116,48 +107,37 @@ void setup()
   {
     LIFTS[i].attach(LIFT_PINS[i]);
     pinMode(LIFT_PINS[i], OUTPUT);
-    pinMode(LIFT_LIMIT_PINS[0][i], INPUT_PULLUP);
-    pinMode(LIFT_LIMIT_PINS[1][i], INPUT_PULLUP);
+    pinMode(LIFT_LIMIT_PINS[0][i], INPUT_PULLUP);//bottop stop switch
+    pinMode(LIFT_LIMIT_PINS[1][i], INPUT_PULLUP);//top stop switch
   }
   
 
   Serial1.begin(115200); // BRIDGE
   Serial2.begin(115200); // SPREADER
   Serial3.begin(115200); // MiniCranes
-  Reciever.begin(115200);
+  Reciever.begin(115200);// TRANSMITTER
 
-  Serial.begin(115200);
-
-  //for (int i = 0; i < sizeof(LIFT_PINS); i++)
-  //{
-    //lifts[i] = LIFT(LIFT_PINS[i], LIFT_LIMIT_PINS[0][i], LIFT_LIMIT_PINS[1][i]);
-    //lifts[i].accel = 0.5;
-    //lifts[i].k = LIFT_K[i];
-  //}     
+  Serial.begin(115200);    
 
   pinMode(LIFTING_LED_PIN, OUTPUT);
   pinMode(MANUAL_LIFT_PIN, INPUT_PULLUP);
 
   oled.init();
   oled.clear();
+  oled.print(
+  F(
+    " Servo1  90  180/r/n"
+    " Servo2  90  180/r/n"
+    " Servo3  90  180/r/n"
+    " Servo4  90  180/r/n"
+    " Servo5  90  180/r/n"
+    " Servo6  90  180/r/n"
+    " Srv1-6  90  180/r/n"
+    " Remote/r/n"
+  ));
+
   oled.setCursor(0, pointer);
   oled.print('>');
-  oled.setCursor(15, 0);
-  oled.print("Remote");
-  oled.setCursor(15, 1);
-  oled.print("Servo 1");
-  oled.setCursor(15, 2);
-  oled.print("Servo 2");
-  oled.setCursor(15, 3);
-  oled.print("Servo 3");
-  oled.setCursor(15, 4);
-  oled.print("Servo 4");
-  oled.setCursor(15, 5);
-  oled.print("Servo 5");
-  oled.setCursor(15, 6);
-  oled.print("Servo 6");
-  oled.setCursor(15, 7);
-  oled.print("All Servo");
   
   oled.update();
 }
@@ -177,18 +157,14 @@ void loop()
           if(encoderServo.right()) { data_top[pointer]++; data_top[pointer] = constrain(data_top[pointer], 90, 180);}
           if(encoderServo.left()) { data_top[pointer]--; data_top[pointer] = constrain(data_top[pointer], 90, 180);}
         break;
-        default:
-        
+        default:        
           if(encoderServo.right()) pointer++;
           if(encoderServo.left()) pointer--;
           
-          //if(pointer > 7) pointer = 0;
-          //if(pointer == 255) pointer = 7;
-          //Serial.println(pointer);
+          if(pointer > 7) pointer = 0;
+          if(pointer < 0) pointer = 7;
         break;
       }
-
-    pointer = constrain(pointer, 0, 7);
          
     for (int i = 0; i < 8; i++)
     {
@@ -201,6 +177,7 @@ void loop()
       oled.setCursor(param_pos[2]*6, i);
       oled.print(' ');
     }
+
     if(pointer < 7)
     {
     oled.setCursor((param_pos[1] + 1)*6, pointer);
@@ -257,23 +234,20 @@ if(millis() - tmr_oled > 50)
           //Serial.print("##################################################");
           for (int i = 0; i < 6; i++)
           {
-            LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val : 90);
-
+            LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? data_top[i] : data_bot[i]) : 90);
           }
-            //LIFTS[i].write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW)  (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val : 90));
         }
         else
         {
-
-LIFTS[pointer].write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][pointer]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][pointer]) == LOW) ? val : 90));
+          LIFTS[pointer].write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][pointer]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][pointer]) == LOW) ? val : 90));
           
           Serial.print("flag = ");
           Serial.print(flag);
-          Serial.print("     pointer = ");
+          Serial.print("    pointer = ");
           Serial.print(pointer);
-          Serial.print("     up = ");
+          Serial.print("    up = ");
           Serial.print(digitalRead(LIFT_LIMIT_PINS[0][pointer]));
-          Serial.print("      bot = ");
+          Serial.print("    bot = ");
           Serial.println(digitalRead(LIFT_LIMIT_PINS[1][pointer]));
         }
   }
