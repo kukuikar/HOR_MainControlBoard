@@ -17,4 +17,5 @@ int myFunction(int x, int y) {
   return x + y;
 
   int e = 0;
+  char d = 'r';
 }
