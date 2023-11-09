@@ -95,7 +95,7 @@ bool remote = true;
 int data_bot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 int data_top[8] = {180, 180, 180, 180, 180, 180, 180, 0};
 int flag = 0;
-int param_pos[3] = {0, 11, 16};
+int param_pos[3] = {0, 9, 13};
 const int LIFTS_COUNT = 6;
 ServoSmooth LIFTS[LIFTS_COUNT];
 
@@ -125,16 +125,17 @@ void setup()
 
   oled.init();
   oled.clear();
-  oled.print(
-      F(
-          " Servo1   90   180/r/n"
-          " Servo2   90   180/r/n"
-          " Servo3   90   180/r/n"
-          " Servo4   90   180/r/n"
-          " Servo5   90   180/r/n"
-          " Servo6   90   180/r/n"
-          " Srv1-6   90   180/r/n"
-          " Remote/r/n"));
+  oled.print                        
+    (F(
+     " Servo 1  0   180\r\n"
+     " Servo 2  0   180\r\n"
+     " Servo 3  0   180\r\n"
+     " Servo 4  0   180\r\n"
+     " Servo 5  0   180\r\n"
+     " Servo 6  0   180\r\n"
+     " Srv 1-6  0   180\r\n"
+     " Remote\r\n"
+    ));
 
   oled.setCursor(0, pointer);
   oled.print('>');
