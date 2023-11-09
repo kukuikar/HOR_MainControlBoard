@@ -127,7 +127,7 @@ void setup()
   oled.clear();
   oled.print(
       F(
-          " Servo1   90   180/r/n"
+          " Servo1 0 90   180/r/n"
           " Servo2   90   180/r/n"
           " Servo3   90   180/r/n"
           " Servo4   90   180/r/n"
