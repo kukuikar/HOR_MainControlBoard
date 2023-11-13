@@ -227,7 +227,7 @@ void loop()
 
     if (encoderServo.click())
     {
-      if (pointer == 7)
+      /* (pointer == 7)
       {
         remote = !remote;
         oled.setCursor(6 * 2, 7);
@@ -235,18 +235,25 @@ void loop()
         oled.update();
       }
       else // if(pointer > 0)
+      
       {
         // if(flag == 2)
         // flag = 0;
         // else
-        flag++;
-
-        oled.setCursor(param_pos[flag == 0 ? 2 : flag - 1] * 6, pointer);
+        */
+        oled.setCursor(param_pos[flag]*6, pointer);
         oled.print(' ');
-        oled.setCursor(param_pos[flag] * 6, pointer);
+        flag++;
+        oled.setCursor(param_pos[flag]*6, pointer);
         oled.print('>');
         oled.update();
-      }
+
+        //oled.setCursor(param_pos[flag == 0 ? 2 : flag - 1] * 6, pointer);
+        //oled.print(' ');
+        //oled.setCursor(param_pos[flag] * 6, pointer);
+        //oled.print('>');
+        //oled.update();
+      //}
     }
 
     if (millis() - tmr_oled > 50)
