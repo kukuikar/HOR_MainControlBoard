@@ -70,8 +70,8 @@ float LIFT_K[6] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 /////////////////////
 /// COMMUNICATION ///
 /////////////////////
-SoftwareSerial Reciever(TRANS_Rx_PIN, TRANS_Tx_PIN);
-AsyncStream<25> Serial_Rx(&Reciever, TERMINATOR);
+SoftwareSerial RecieverSerial(TRANS_Rx_PIN, TRANS_Tx_PIN);
+AsyncStream<25> Reciever(&RecieverSerial, TERMINATOR);
 EncButton encoderServo(25, 26, 27); // 25-26 - encoder, 27 - button
 
 // для I2C можно передать адрес: GyverOLED oled(0x3C);
@@ -101,6 +101,7 @@ ServoSmooth LIFTS[LIFTS_COUNT];
 
 void setup()
 {
+  //fix garbage in serials
   digitalWrite(15, HIGH);
   digitalWrite(17, HIGH);
   digitalWrite(19, HIGH);
@@ -116,7 +117,7 @@ void setup()
   Serial1.begin(115200);  // BRIDGE
   Serial2.begin(115200);  // SPREADER
   Serial3.begin(115200);  // MiniCranes
-  Reciever.begin(115200); // TRANSMITTER
+  RecieverSerial.begin(115200); // TRANSMITTER
 
   Serial.begin(115200);
 
@@ -147,7 +148,7 @@ void setup()
 void loop()
 {
   encoderServo.tick();
-
+  //ручное управление с главной платы
   if (digitalRead(MANUAL_LIFT_PIN) == LOW)
   {
     oled.setPower(OLED_DISPLAY_ON);
@@ -282,26 +283,27 @@ void loop()
     oled.setPower(OLED_DISPLAY_OFF);
   }
 
-  if (Serial_Rx.available())
+  if (Reciever.available())
   {
-    GParser data(Serial_Rx.buf);
+    GParser data(Reciever.buf);
     int ints[data.amount()];
     int n = data.parseInts(ints);
 
     switch (ints[0])
     {
     case 0:                         // BRIDGE
-      Serial1.write(Serial_Rx.buf); // redirect to BRIDGE
+      Serial1.write(Reciever.buf); // redirect to BRIDGE
       break;
     case 1:                         // SPREADER
-      Serial2.write(Serial_Rx.buf); // redirect to SPREADER
+      Serial2.write(Reciever.buf); // redirect to SPREADER
       break;
     case 2:                         // MiniCranes
-      Serial3.write(Serial_Rx.buf); // redirect to MiniCranes
+      Serial3.write(Reciever.buf); // redirect to MiniCranes
       break;
     case 3: // Lifting
-      int val = ints[2];
       int servoNum = ints[1];
+      int val = ints[2];
+      
 
       // if(millis() - tmr > 50)
       {
