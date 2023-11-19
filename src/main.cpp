@@ -256,6 +256,7 @@ void loop()
       //}
     }
 
+
     if (millis() - tmr_oled > 50)
     {
       tmr_oled = millis();
@@ -290,6 +291,11 @@ void loop()
     oled.setPower(OLED_DISPLAY_OFF);
   }
 
+
+///////////
+/// что-то пллучено в приемник /////
+////////////////////////////////////
+
   if (Reciever.available())
   {
     GParser data(Reciever.buf);
@@ -308,8 +314,8 @@ void loop()
       Serial3.write(Reciever.buf); // redirect to MiniCranes
       break;
     case 3: // Lifting
-      int servoNum = ints[1];
-      int val = ints[2];
+      int servoNum = ints[2];
+      int val = ints[1];
       
 
       // if(millis() - tmr > 50)
