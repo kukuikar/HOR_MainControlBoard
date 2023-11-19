@@ -59,7 +59,7 @@ int LIFT_LIMIT_PINS[2][6] =
   {29, 31, 33, 35, 37, 39}, /*bottom limit*/
 };
 
-float LIFT_K[6] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+//float LIFT_K[6] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
 #define TRANS_Rx_PIN 2
 #define TRANS_Tx_PIN 3
@@ -92,8 +92,8 @@ int tmr_oled_inerval = 200;
 int servoNumManual = 6;
 int pointer = 0;
 bool remote = true;
-int data_bot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-int data_top[8] = {180, 180, 180, 180, 180, 180, 180, 0};
+int limit_value_bot[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+int limit_value_top[8] = {180, 180, 180, 180, 180, 180, 180, 0};
 int flag = 0;
 int param_pos[3] = {0, 9, 13};
 const int LIFTS_COUNT = 6;
@@ -147,6 +147,7 @@ void setup()
 
 void loop()
 {
+  
   encoderServo.tick();
   //ручное управление с главной платы
   if (digitalRead(MANUAL_LIFT_PIN) == LOW)
@@ -159,25 +160,25 @@ void loop()
       case 1:
         if (encoderServo.right())
         {
-          data_bot[pointer]++;
-          data_bot[pointer] = constrain(data_bot[pointer], 0, 90);
+          limit_value_bot[pointer]++;
+          limit_value_bot[pointer] = constrain(limit_value_bot[pointer], 0, 90);
         }
         if (encoderServo.left())
         {
-          data_bot[pointer]--;
-          data_bot[pointer] = constrain(data_bot[pointer], 0, 90);
+          limit_value_bot[pointer]--;
+          limit_value_bot[pointer] = constrain(limit_value_bot[pointer], 0, 90);
         }
         break;
       case 2:
         if (encoderServo.right())
         {
-          data_top[pointer]++;
-          data_top[pointer] = constrain(data_top[pointer], 90, 180);
+          limit_value_top[pointer]++;
+          limit_value_top[pointer] = constrain(limit_value_top[pointer], 90, 180);
         }
         if (encoderServo.left())
         {
-          data_top[pointer]--;
-          data_top[pointer] = constrain(data_top[pointer], 90, 180);
+          limit_value_top[pointer]--;
+          limit_value_top[pointer] = constrain(limit_value_top[pointer], 90, 180);
         }
         break;
       default:
@@ -208,15 +209,15 @@ void loop()
       if (pointer < 7)
       {
         oled.setCursor((param_pos[1] + 1) * 6, pointer);
-        oled.print(data_bot[pointer]);
-        if (data_bot[pointer] < 10)
+        oled.print(limit_value_bot[pointer]);
+        if (limit_value_bot[pointer] < 10)
         {
           oled.setCursor((param_pos[1] + 2) * 6, pointer);
           oled.print(' ');
         }
 
         oled.setCursor((param_pos[2] + 1) * 6, pointer);
-        oled.print(data_top[pointer]);
+        oled.print(limit_value_top[pointer]);
       }
 
       oled.setCursor(param_pos[flag] * 6, pointer);
@@ -266,8 +267,8 @@ void loop()
         if (pointer == 6)
         {
           for (int i = 0; i < LIFTS_COUNT; i++)
-          {
-            LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? data_top[i] : data_bot[i]) : 90);
+          {    
+            LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? limit_value_top[i] : limit_value_bot[i]) : 90);
           }
         }
         else
@@ -326,7 +327,7 @@ void loop()
         {
           for (int i = 0; i < LIFTS_COUNT; i++)
           {
-            LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? data_top[i] : data_bot[i]) : 90);
+            LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? limit_value_top[i] : limit_value_bot[i]) : 90);
           }
         }
         else
