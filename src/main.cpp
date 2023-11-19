@@ -293,7 +293,7 @@ void loop()
   }
 
 
-///////////
+////////////////////////////////////
 /// что-то пллучено в приемник /////
 ////////////////////////////////////
 
@@ -305,13 +305,13 @@ void loop()
 
     switch (ints[0])
     {
-    case 0:                         // BRIDGE
+    case 0:                        // BRIDGE
       Serial1.write(Reciever.buf); // redirect to BRIDGE
       break;
-    case 1:                         // SPREADER
+    case 1:                        // SPREADER
       Serial2.write(Reciever.buf); // redirect to SPREADER
       break;
-    case 2:                         // MiniCranes
+    case 2:                        // MiniCranes
       Serial3.write(Reciever.buf); // redirect to MiniCranes
       break;
     case 3: // Lifting
