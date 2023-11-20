@@ -61,8 +61,8 @@ int LIFT_LIMIT_PINS[2][6] =
 
 //float LIFT_K[6] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
-#define TRANS_Rx_PIN 2
-#define TRANS_Tx_PIN 3
+#define TRANS_Rx_PIN 53
+#define TRANS_Tx_PIN 52
 #define MANUAL_LIFT_PIN 46
 #define LIFTING_LED_PIN 4
 #define servoManualGimbalPin A0
@@ -71,7 +71,7 @@ int LIFT_LIMIT_PINS[2][6] =
 /// COMMUNICATION ///
 /////////////////////
 SoftwareSerial RecieverSerial(TRANS_Rx_PIN, TRANS_Tx_PIN);
-AsyncStream<25> Reciever(&RecieverSerial, TERMINATOR);
+// AsyncStream<25> Reciever(&RecieverSerial, TERMINATOR);
 EncButton encoderServo(25, 26, 27); // 25-26 - encoder, 27 - button
 
 // для I2C можно передать адрес: GyverOLED oled(0x3C);
@@ -147,7 +147,7 @@ void setup()
 
 void loop()
 {
-  
+  /*
   encoderServo.tick();
   //ручное управление с главной платы
   if (digitalRead(MANUAL_LIFT_PIN) == LOW)
@@ -241,7 +241,7 @@ void loop()
         // if(flag == 2)
         // flag = 0;
         // else
-        */
+        
         oled.setCursor(param_pos[flag]*6, pointer);
         oled.print(' ');
         flag++;
@@ -292,14 +292,19 @@ void loop()
     oled.setPower(OLED_DISPLAY_OFF);
   }
 
-
+*/
 ////////////////////////////////////
 /// что-то пллучено в приемник /////
 ////////////////////////////////////
+Serial.println(0);
 
-  if (Reciever.available())
+  if (RecieverSerial.available())
   {
-    GParser data(Reciever.buf);
+    delay(20);
+    if (RecieverSerial.available())
+      {
+    Serial.println(1);}
+    /* GParser data(Reciever.buf);
     int ints[data.amount()];
     int n = data.parseInts(ints);
 
@@ -336,6 +341,7 @@ void loop()
         }
         break;
       }
-    }
+    }*/
   }
+  delay(20);
 }
