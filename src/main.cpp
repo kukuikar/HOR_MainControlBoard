@@ -5,6 +5,7 @@
 #include <GyverOLED.h>
 #include <EncButton.h>
 #include <Arduino.h>
+ServoSmooth s0;
 class LIFT
 {
 public:
@@ -61,17 +62,14 @@ int LIFT_LIMIT_PINS[2][6] =
 
 //float LIFT_K[6] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
-#define TRANS_Rx_PIN 53
-#define TRANS_Tx_PIN 52
-#define MANUAL_LIFT_PIN 46
-#define LIFTING_LED_PIN 4
-#define servoManualGimbalPin A0
+#define TRANS_Rx_PIN 10
+#define TRANS_Tx_PIN 9
 
 /////////////////////
 /// COMMUNICATION ///
 /////////////////////
 SoftwareSerial RecieverSerial(TRANS_Rx_PIN, TRANS_Tx_PIN);
-// AsyncStream<25> Reciever(&RecieverSerial, TERMINATOR);
+AsyncStream<25> Reciever(&RecieverSerial, TERMINATOR);
 EncButton encoderServo(25, 26, 27); // 25-26 - encoder, 27 - button
 
 // для I2C можно передать адрес: GyverOLED oled(0x3C);
@@ -108,41 +106,20 @@ void setup()
 
   for (int i = 0; i < LIFTS_COUNT; i++)
   {
-    LIFTS[i].attach(LIFT_PINS[i]);
+    //LIFTS[i].attach(LIFT_PINS[i]);
     pinMode(LIFT_PINS[i], OUTPUT);
     pinMode(LIFT_LIMIT_PINS[0][i], INPUT_PULLUP); // bottop stop switch
     pinMode(LIFT_LIMIT_PINS[1][i], INPUT_PULLUP); // top stop switch
   }
 
+  s0.attach(LIFT_PINS[0]);
+
   Serial1.begin(115200);  // BRIDGE
   Serial2.begin(115200);  // SPREADER
   Serial3.begin(115200);  // MiniCranes
-  RecieverSerial.begin(115200); // TRANSMITTER
+  RecieverSerial.begin(9600); // TRANSMITTER
 
   Serial.begin(115200);
-
-  pinMode(LIFTING_LED_PIN, OUTPUT);
-  pinMode(MANUAL_LIFT_PIN, INPUT_PULLUP);
-
-  oled.init();
-  oled.clear();
-  oled.print                        
-    (F(
-     " Servo 1  0   180\r\n"
-     " Servo 2  0   180\r\n"
-     " Servo 3  0   180\r\n"
-     " Servo 4  0   180\r\n"
-     " Servo 5  0   180\r\n"
-     " Servo 6  0   180\r\n"
-     " Srv 1-6  0   180\r\n"
-     " Remote\r\n"
-    ));
-
-  oled.setCursor(0, pointer);
-  oled.print('>');
-
-  oled.update();
-  oled.setPower(OLED_DISPLAY_OFF);
 }
 
 void loop()
@@ -294,17 +271,12 @@ void loop()
 
 */
 ////////////////////////////////////
-/// что-то пллучено в приемник /////
+/// что-то получено в приемник /////
 ////////////////////////////////////
-Serial.println(0);
-
-  if (RecieverSerial.available())
+//Serial.println(0);
+  if (Reciever.available())
   {
-    delay(20);
-    if (RecieverSerial.available())
-      {
-    Serial.println(1);}
-    /* GParser data(Reciever.buf);
+    GParser data(Reciever.buf);
     int ints[data.amount()];
     int n = data.parseInts(ints);
 
@@ -322,7 +294,7 @@ Serial.println(0);
     case 3: // Lifting
       int servoNum = ints[2];
       int val = ints[1];
-      
+
 
       // if(millis() - tmr > 50)
       {
@@ -331,17 +303,37 @@ Serial.println(0);
         if (servoNum == 6)
         {
           for (int i = 0; i < LIFTS_COUNT; i++)
-          {
-            LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? limit_value_top[i] : limit_value_bot[i]) : 90);
+          {  
+            Serial.println('6');          
+            //LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? limit_value_top[i] : limit_value_bot[i]) : 90);
           }
         }
         else
         {
-          LIFTS[pointer].write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][servoNum]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][servoNum]) == LOW) ? val : 90));
+          Serial.print("Servo ");
+          Serial.print(servoNum);
+          Serial.print("    Angle ");
+          Serial.print(val);
+          Serial.print("    Limit TOP  ");
+          Serial.print(digitalRead(LIFT_LIMIT_PINS[0][servoNum]));
+          Serial.print("    Limit BOT  ");
+          Serial.println(digitalRead(LIFT_LIMIT_PINS[1][servoNum]));
+          int v = (val > 90 && digitalRead(LIFT_LIMIT_PINS[0][servoNum]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][servoNum]) == LOW) ? val : 90;
+          //LIFTS[pointer].write(v);
+          while ((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][servoNum]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][servoNum]) == LOW))
+          {
+            s0.write(v);
+          }
+          
+          s0.write(90);
+          Serial.println("yyy");
         }
         break;
       }
-    }*/
+    }
   }
-  delay(20);
+  else
+  {
+    s0.write(90);
+  }
 }
