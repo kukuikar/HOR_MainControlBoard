@@ -71,6 +71,7 @@ int LIFT_LIMIT_PINS[2][6] =
 SoftwareSerial RecieverSerial(TRANS_Rx_PIN, TRANS_Tx_PIN);
 AsyncStream<25> Reciever(&RecieverSerial, TERMINATOR);
 EncButton encoderServo(25, 26, 27); // 25-26 - encoder, 27 - button
+#define SOFT_SERIAL_SPEED 38400
 
 // для I2C можно передать адрес: GyverOLED oled(0x3C);
 //GyverOLED<SSD1306_128x64, OLED_BUFFER, OLED_SPI, 22, 23, 24> oled;
@@ -117,9 +118,9 @@ void setup()
   Serial1.begin(115200);  // BRIDGE
   Serial2.begin(115200);  // SPREADER
   Serial3.begin(115200);  // MiniCranes
-  RecieverSerial.begin(9600); // TRANSMITTER
+  RecieverSerial.begin(SOFT_SERIAL_SPEED); // TRANSMITTER
 
-  Serial.begin(115200);
+  Serial.begin(38400);
 }
 
 void loop()
@@ -274,6 +275,8 @@ void loop()
 /// что-то получено в приемник /////
 ////////////////////////////////////
 //Serial.println(0);
+int v = 90;
+int val = 90;
   if (Reciever.available())
   {
     GParser data(Reciever.buf);
@@ -293,47 +296,61 @@ void loop()
       break;
     case 3: // Lifting
       int servoNum = ints[2];
-      int val = ints[1];
+      val = ints[1];
+      
 
 
       // if(millis() - tmr > 50)
       {
         // tmr = millis();
-
+        servoNum = constrain(servoNum, 0, 6);
         if (servoNum == 6)
         {
-          for (int i = 0; i < LIFTS_COUNT; i++)
+          for (int i = 0; i < 1; i++)
           {  
-            Serial.println('6');          
+            v = (val > 90 && digitalRead(LIFT_LIMIT_PINS[0][0]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][0]) == LOW) ? val : 90;
+            v = constrain(v, 0, 180);
+            //s0.write(v);
+            Serial.print("Servo ");
+            Serial.print(servoNum);
+            Serial.print("    Angle ");
+            Serial.print(val);
+            Serial.print(" = ");
+            Serial.print(v);
+            Serial.print("    Limit TOP  ");
+            Serial.print(digitalRead(LIFT_LIMIT_PINS[0][0]));
+            Serial.print("    Limit BOT  ");
+            Serial.println(digitalRead(LIFT_LIMIT_PINS[1][0])); 
             //LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? limit_value_top[i] : limit_value_bot[i]) : 90);
           }
         }
         else
         {
-          Serial.print("Servo ");
-          Serial.print(servoNum);
-          Serial.print("    Angle ");
-          Serial.print(val);
-          Serial.print("    Limit TOP  ");
-          Serial.print(digitalRead(LIFT_LIMIT_PINS[0][servoNum]));
-          Serial.print("    Limit BOT  ");
-          Serial.println(digitalRead(LIFT_LIMIT_PINS[1][servoNum]));
-          int v = (val > 90 && digitalRead(LIFT_LIMIT_PINS[0][servoNum]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][servoNum]) == LOW) ? val : 90;
+          //Serial.print("Servo ");
+          //Serial.print(servoNum);
+          //Serial.print("    Angle ");
+          //Serial.print(val);
+          //Serial.print("    Limit TOP  ");
+          //Serial.print(digitalRead(LIFT_LIMIT_PINS[0][servoNum]));
+          //Serial.print("    Limit BOT  ");
+          //Serial.println(digitalRead(LIFT_LIMIT_PINS[1][servoNum]));
+          //int v = (val > 90 && digitalRead(LIFT_LIMIT_PINS[0][servoNum]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][servoNum]) == LOW) ? val : 90;
           //LIFTS[pointer].write(v);
-          while ((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][servoNum]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][servoNum]) == LOW))
+          //while ((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][servoNum]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][servoNum]) == LOW))
           {
-            s0.write(v);
+           // s0.write(v);
           }
           
-          s0.write(90);
-          Serial.println("yyy");
+          //s0.write(90);
+          //Serial.println("yyy");
         }
         break;
       }
     }
   }
-  else
-  {
-    s0.write(90);
-  }
+Serial.print(val);
+s0.write(val);
+Serial.println("           end;");
+
+  //LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? limit_value_top[i] : limit_value_bot[i]) : 90);
 }
