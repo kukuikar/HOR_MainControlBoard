@@ -78,8 +78,8 @@ int LIFT_LIMIT_PINS[2][6] =
 /////////////////////
 /// COMMUNICATION ///
 /////////////////////
-#define TRANS_CE_PIN 10
-#define TRANS_CSN_PIN 9
+#define TRANS_CE_PIN 9
+#define TRANS_CSN_PIN 10
 
 RF24 radio(TRANS_CE_PIN, TRANS_CSN_PIN);   // nRF24L01 (CE, CSN)
 const byte address[6] = "00001";
