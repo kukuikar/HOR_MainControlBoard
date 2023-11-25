@@ -1,4 +1,4 @@
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 #include <GParser.h>
 #include <AsyncStream.h>
 #include <ServoSmooth.h>
@@ -41,7 +41,6 @@ Data_Package data;
 /////////////////////////////////////////////
 ServoSmooth s0;
 /////////////////////////////////////////////
-
 
 /////////////////////////////////////////////
 /// PINS DEFINE                           ///
@@ -102,10 +101,10 @@ void setup()
   s0.attach(LIFT_PINS[0]);
   /////////////////////////////////////////////
 
-  Serial1.begin(115200); // BRIDGE
+  /*Serial1.begin(115200); // BRIDGE
   Serial2.begin(115200); // SPREADER
   Serial3.begin(115200); // MINICRANES
-
+*/
   Serial.begin(38400);
 
   // begin rf24 session
@@ -127,7 +126,21 @@ void loop()
   {
     radio.read(&data, sizeof(Data_Package)); // Read the whole data and store it into the 'data' structure
     lastReceiveTime = millis();              // At this moment we have received the data
+
+    // Добавил, чтобы проверить нажатие тумблеров
+    Serial.println(data.Lift_Drive);
+    Serial.print("Bridge = ");
+    Serial.println(data.Bridge_Enabled);
+    Serial.print("Spreader = ");
+    Serial.println(data.Spreader_Enabled);
+    Serial.print("Mini = ");
+    Serial.println(data.Mini_Enabled);
+    Serial.print("Lift = ");
+    Serial.println(data.Lift_Enabled);
+    //////////////////////////////////////////////
+
   }
+  
   
   currentTime = millis();
 
@@ -137,7 +150,8 @@ void loop()
     resetData(); // If connection is lost, reset the data. It prevents unwanted behavior
   }
 
-  if (data.Bridge_Enabled == 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled != 0 && data.Lift_Enabled != 0)
+  
+  /*if (data.Bridge_Enabled == 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled != 0 && data.Lift_Enabled != 0)
   {//BRIDGE ENABLED
     Serial1.write('0,');
     Serial1.write(map(data.Bridge_Drive, 0, 255, -255, 255));
@@ -170,7 +184,7 @@ void loop()
     Serial3.write(',');
     Serial3.write(map(data.Mini_Arm, 0, 255, -255, 255));
     Serial3.write(';');
-  }
+  }*/
   else if (data.Bridge_Enabled != 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled != 0 && data.Lift_Enabled == 0)
   {//LIFTS ENABLED
     int s = data.Lift_Servo;
@@ -179,10 +193,16 @@ void loop()
     ///////// SERVO FOR TESTING  ////////////////
     ///////// REMOVE AFTER DEBUG ////////////////
     /////////////////////////////////////////////
-    s0.write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][0]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][0]) == LOW) ? val : 90);
-    /////////////////////////////////////////////
+    if (val>=88 && val <=91){   // добавил, так как у "большого" джойстика прыгали значения и при каждом новом подключение среднее значение сдвигалось
+      s0.write(90);
+    }
 
+    else{
+      s0.write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][0]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][0]) == LOW)) ? val : 90);
+    }
+    
     // LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? LIMIT_VALUE_TOP[i] : LIMIT_VALUE_BOT[i]) : 90);
+  
   }
   else
   {
