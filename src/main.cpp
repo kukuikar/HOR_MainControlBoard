@@ -39,7 +39,9 @@ Data_Package data;
 ///////// SERVO FOR TESTING  ////////////////
 ///////// REMOVE AFTER DEBUG ////////////////
 /////////////////////////////////////////////
-ServoSmooth s0;
+
+ServoSmooth LIFTS[6]; //инициализировал 6 серв
+
 /////////////////////////////////////////////
 
 /////////////////////////////////////////////
@@ -77,7 +79,7 @@ int tmr_oled_inerval = 200;
 int LIMIT_VALUE_BOT[6] = {0, 0, 0, 0, 0, 0};
 int LIMIT_VALUE_TOP[6] = {180, 180, 180, 180, 180, 180};
 const int LIFTS_COUNT = 6;
-ServoSmooth LIFTS[LIFTS_COUNT];
+
 
 void setup()
 {
@@ -88,7 +90,7 @@ void setup()
 
   for (int i = 0; i < LIFTS_COUNT; i++)
   {
-    // LIFTS[i].attach(LIFT_PINS[i]);
+    LIFTS[i].attach(LIFT_PINS[i]);
     pinMode(LIFT_PINS[i], OUTPUT);
     pinMode(LIFT_LIMIT_PINS[0][i], INPUT_PULLUP); // bottop stop switch pullup
     pinMode(LIFT_LIMIT_PINS[1][i], INPUT_PULLUP); // top stop switch pullup
@@ -98,7 +100,8 @@ void setup()
   ///////// SERVO FOR TESTING  ////////////////
   ///////// REMOVE AFTER DEBUG ////////////////
   /////////////////////////////////////////////
-  s0.attach(LIFT_PINS[0]);
+  
+
   /////////////////////////////////////////////
 
   /*Serial1.begin(115200); // BRIDGE
@@ -193,15 +196,26 @@ void loop()
     ///////// SERVO FOR TESTING  ////////////////
     ///////// REMOVE AFTER DEBUG ////////////////
     /////////////////////////////////////////////
-    if (val>=88 && val <=91){   // добавил, так как у "большого" джойстика прыгали значения и при каждом новом подключение среднее значение сдвигалось
-      s0.write(90);
+
+
+//------------------Управление сервами-------------------
+
+
+    if (val>=80 && val <=120){   // добавил, так как у "большого" джойстика прыгали значения и при каждом новом подключение среднее значение сдвигалось
+      stop();
     }
 
     else{
-      s0.write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][0]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][0]) == LOW)) ? val : 90);
+      for (int i=0;i<LIFTS_COUNT;i++){
+        LIFTS[i].write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW)) ? val : 90);
+      }
     }
-    
-    // LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? LIMIT_VALUE_TOP[i] : LIMIT_VALUE_BOT[i]) : 90);
+
+//-------------------------------------------------------    
+
+
+
+    //LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? LIMIT_VALUE_TOP[i] : LIMIT_VALUE_BOT[i]) : 90);
   
   }
   else
@@ -210,7 +224,7 @@ void loop()
     ///////// SERVO FOR TESTING  ////////////////
     ///////// REMOVE AFTER DEBUG ////////////////
     /////////////////////////////////////////////
-    s0.write(90);
+    stop();
     /////////////////////////////////////////////
     resetData();
   }
@@ -244,4 +258,11 @@ void resetData()
   {
     LIFTS[i].write(90);
   }
+}
+
+
+void stop(){     //Добавил функцию остановки всех серв
+   for (int i=0;i<LIFTS_COUNT;i++){
+      LIFTS[i].write(90);
+    }
 }
