@@ -92,8 +92,8 @@ void setup()
   {
     LIFTS[i].attach(LIFT_PINS[i]);
     pinMode(LIFT_PINS[i], OUTPUT);
-    pinMode(LIFT_LIMIT_PINS[0][i], INPUT_PULLUP); // bottop stop switch pullup
-    pinMode(LIFT_LIMIT_PINS[1][i], INPUT_PULLUP); // top stop switch pullup
+    pinMode(LIFT_LIMIT_PINS[0][i], INPUT_PULLUP); // bottop StopAllServo switch pullup
+    pinMode(LIFT_LIMIT_PINS[1][i], INPUT_PULLUP); // top StopAllServo switch pullup
   }
 
   /////////////////////////////////////////////
@@ -149,12 +149,13 @@ void loop()
 
   if (currentTime - lastReceiveTime > 1000)
   {
-    // If current time is more then 1 second since we have recived the last data, that means we have lost connection
-    resetData(); // If connection is lost, reset the data. It prevents unwanted behavior
+    StopAllServo();
+    resetData();
   }
 
   
-  /*if (data.Bridge_Enabled == 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled != 0 && data.Lift_Enabled != 0)
+  /*
+  if (data.Bridge_Enabled == 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled != 0 && data.Lift_Enabled != 0)
   {//BRIDGE ENABLED
     Serial1.write('0,');
     Serial1.write(map(data.Bridge_Drive, 0, 255, -255, 255));
@@ -187,7 +188,8 @@ void loop()
     Serial3.write(',');
     Serial3.write(map(data.Mini_Arm, 0, 255, -255, 255));
     Serial3.write(';');
-  }*/
+  }
+  */
   else if (data.Bridge_Enabled != 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled != 0 && data.Lift_Enabled == 0)
   {//LIFTS ENABLED
     int s = data.Lift_Servo;
@@ -201,12 +203,17 @@ void loop()
 //------------------Управление сервами-------------------
 
 
-    if (val>=80 && val <=120){   // добавил, так как у "большого" джойстика прыгали значения и при каждом новом подключение среднее значение сдвигалось
-      stop();
+    if (val >= 80 && val <= 120)
+    {                              
+      // добавил, так как у "большого" джойстика прыгали значения и                            
+      // при каждом новом подключение среднее значение сдвигалось
+      StopAllServo();
     }
 
-    else{
-      for (int i=0;i<LIFTS_COUNT;i++){
+    else
+    {
+      for (int i = 0; i < LIFTS_COUNT; i++)
+      {
         LIFTS[i].write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW)) ? val : 90);
       }
     }
@@ -224,7 +231,7 @@ void loop()
     ///////// SERVO FOR TESTING  ////////////////
     ///////// REMOVE AFTER DEBUG ////////////////
     /////////////////////////////////////////////
-    stop();
+    StopAllServo();
     /////////////////////////////////////////////
     resetData();
   }
@@ -253,16 +260,14 @@ void resetData()
   data.Lift_Enabled = 1;
   data.Lift_Drive   = 90;
   data.Lift_Servo   = 6;
-
-  for (int i = 0; i < LIFTS_COUNT; i++)
-  {
-    LIFTS[i].write(90);
-  }
 }
 
 
-void stop(){     //Добавил функцию остановки всех серв
-   for (int i=0;i<LIFTS_COUNT;i++){
-      LIFTS[i].write(90);
-    }
+void StopAllServo()
+{     
+  //Добавил функцию остановки всех серв
+  for (int i=0;i<LIFTS_COUNT;i++)
+  {
+    LIFTS[i].write(90);
+  }
 }
