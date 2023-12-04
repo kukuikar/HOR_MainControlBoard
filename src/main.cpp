@@ -152,11 +152,11 @@ void loop()
     StopAllServo();
     resetData();
   }
-
   
-  /*
+  
   if (data.Bridge_Enabled == 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled != 0 && data.Lift_Enabled != 0)
-  {//BRIDGE ENABLED
+  {
+    //BRIDGE ENABLED
     Serial1.write('0,');
     Serial1.write(map(data.Bridge_Drive, 0, 255, -255, 255));
     Serial1.write(',');
@@ -166,7 +166,8 @@ void loop()
     Serial1.write(';');
   }
   else if (data.Bridge_Enabled != 0 && data.Spreader_Enabled == 0 && data.Mini_Enabled != 0 && data.Lift_Enabled != 0)
-  {//SPREADER ENABLED
+  {
+    //SPREADER ENABLED
     Serial2.write('1,');
     Serial2.write(map(data.Spreader_Rotate, 0, 255, -255, 255));
     Serial2.write(',');
@@ -176,7 +177,8 @@ void loop()
     Serial2.write(';');
   }
   else if (data.Bridge_Enabled != 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled == 0 && data.Lift_Enabled != 0)
-  {//MINI CRANES ENABLED
+  {
+    //MINI CRANES ENABLED
     Serial3.write('2,');
     Serial3.write(data.Mini_Mode);
     Serial3.write(',');
@@ -189,27 +191,23 @@ void loop()
     Serial3.write(map(data.Mini_Arm, 0, 255, -255, 255));
     Serial3.write(';');
   }
-  */
   else if (data.Bridge_Enabled != 0 && data.Spreader_Enabled != 0 && data.Mini_Enabled != 0 && data.Lift_Enabled == 0)
-  {//LIFTS ENABLED
+  {
+    //LIFTS ENABLED
     int s = data.Lift_Servo;
-    int val = data.Lift_Drive;
+    int val = round(data.Lift_Drive / 5) * 5;//округляем до 5 градусов
     /////////////////////////////////////////////
     ///////// SERVO FOR TESTING  ////////////////
     ///////// REMOVE AFTER DEBUG ////////////////
     /////////////////////////////////////////////
 
-
-//------------------Управление сервами-------------------
-
-
+    //------------------Управление сервами-------------------
     if (val >= 80 && val <= 120)
     {                              
       // добавил, так как у "большого" джойстика прыгали значения и                            
       // при каждом новом подключение среднее значение сдвигалось
       StopAllServo();
     }
-
     else
     {
       for (int i = 0; i < LIFTS_COUNT; i++)
@@ -217,9 +215,7 @@ void loop()
         LIFTS[i].write(((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW)) ? val : 90);
       }
     }
-
-//-------------------------------------------------------    
-
+    //-------------------------------------------------------    
 
 
     //LIFTS[i].write((val > 90 && digitalRead(LIFT_LIMIT_PINS[0][i]) == LOW) || (val < 90 && digitalRead(LIFT_LIMIT_PINS[1][i]) == LOW) ? val / 90 * (val > 90 ? LIMIT_VALUE_TOP[i] : LIMIT_VALUE_BOT[i]) : 90);
