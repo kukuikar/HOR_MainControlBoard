@@ -61,7 +61,7 @@ int LIFT_LIMIT_PINS[2][6] =
 #define TRANS_CSN_PIN 10
 
 RF24 radio(TRANS_CE_PIN, TRANS_CSN_PIN); // nRF24L01 (CE, CSN)
-const byte address[6] = "00001";
+const byte address[6] = "00001"; //0x3434343434LL
 
 unsigned long lastReceiveTime = 0;
 unsigned long currentTime = 0;
@@ -117,6 +117,9 @@ void setup()
   radio.setDataRate(RF24_250KBPS);
   radio.setPALevel(RF24_PA_LOW);
   radio.startListening(); //  Set the module as receiver
+  radio.setChannel(0x60);
+  radio.printDetails();
+  radio.printPrettyDetails();
   resetData();
 }
 
